@@ -60,7 +60,6 @@ class User(object):
                 else:
                     print("error in gravity")
 
-
     # def gravity(self):
     #     position_bottom = self.position.y + self.height
     #
