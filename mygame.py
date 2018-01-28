@@ -1,15 +1,15 @@
 import pygame
-import sys
+import sys, os
 from pygame.math import Vector2
 
 
 class User(object):
     # User object
-    def __init__(self, floor):
+    def __init__(self, floors):
         self.position = Vector2(600, 200)
         self.velocity = Vector2(0, 0)
         self.acceleration = Vector2(0, 0)
-        self.floor = floor
+        self.floors = floors
         self.color = (50, 100, 255)
         self.width = 20
         self.height = 20
@@ -42,37 +42,45 @@ class User(object):
 
     def touch_floor(self):
         if self.position.y + self.height == self.floor.get_up():
-            print("touch")
             return True
         else:
             return False
 
     def gravity(self):
         position_bottom = self.position.y + self.height
-        print("------------")
-
-        floo = self.floor.get_up()
-
-        if position_bottom == floo:
-            self.acceleration.y = -self.velocity.y
-        else:
-            difference = floo - position_bottom
-            if difference > self.velocity.y + 1:
-                self.acceleration += Vector2(0, 2)
-            elif difference < self.velocity.y:
-                self.velocity.y = difference
+        for floor in self.floors:
+            if position_bottom == floor.get_up():
+                self.acceleration.y = -self.velocity.y
             else:
-                print("error in gravity")
-        print("position_bottom: " + str(position_bottom))
-        print("floor: " + str(floo))
-        print("speed: " + str(self.velocity.y))
+                difference = floor.get_up() - position_bottom
+                if difference > self.velocity.y + 3:
+                    self.acceleration += Vector2(0, 2)
+                elif difference < self.velocity.y:
+                    self.velocity.y = difference
+                else:
+                    print("error in gravity")
+
+    # def gravity(self):
+    #     position_bottom = self.position.y + self.height
+    #
+    #     floo = self.floor.get_up()
+    #
+    #     if position_bottom == floo:
+    #         self.acceleration.y = -self.velocity.y
+    #     else:
+    #         difference = floo - position_bottom
+    #         if difference > self.velocity.y + 1:
+    #             self.acceleration += Vector2(0, 2)
+    #         elif difference < self.velocity.y:
+    #             self.velocity.y = difference
+    #         else:
+    #             print("error in gravity")
 
     def move_jump(self):
         if self.touch_floor():
             self.is_jump = True
 
     def jump(self):
-        print("Jump")
         if self.is_jump:
             self.velocity += Vector2(0, -30)
             self.is_jump = False
@@ -82,6 +90,12 @@ class User(object):
     def move(self):
         if not self.is_move:
             self.move_stop()
+
+    # def move_right(self):
+    #     if self.touch_floor():
+    #         self.is_move = True
+    #         if not self.velocity.x > self.max_speed:
+    #             self.acceleration += Vector2(1, 0)
 
     def move_right(self):
         self.is_move = True
@@ -101,7 +115,7 @@ class User(object):
 
 
 class Floor(object):
-    def __init__(self, up, down, left, right, color=(153, 102, 51)):
+    def __init__(self, left, right, up, down, color=(153, 102, 51)):
         self.up = up
         self.down = down
         self.left = left
@@ -135,8 +149,11 @@ class MyGame(object):
 
         self.screen_size = self.screen.get_size()
 
-        self.floor = Floor(600, 620, 00, 1080)
-        self.user = User(self.floor)
+        self.floor1 = Floor(0, 620, 700, 720)
+        self.floor2 = Floor(200, 600, 400, 420)
+        self.floor3 = Floor(700, 1270, 700, 720)
+        self.floors = (self.floor1, self.floor2, self.floor3)
+        self.user = User(self.floors)
 
         while True:
             self.clock.tick(50)
@@ -147,6 +164,8 @@ class MyGame(object):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         sys.exit(0)
+                if event.type == pygame.JOYBUTTONDOWN:
+                    pass
 
             self.tick()
             self.screen.fill((0, 0, 0))
@@ -175,9 +194,9 @@ class MyGame(object):
         pygame.draw.rect(self.screen, self.user.color, usr)
 
     def draw_floor(self):
-        bott = pygame.Rect(self.floor.get_left(), self.floor.get_up(), self.floor.get_width(), self.floor.get_height())
-        pygame.draw.rect(self.screen, self.floor.color, bott)
-
+        for floor in self.floors:
+            rect = pygame.Rect(floor.get_left(), floor.get_up(), floor.get_width(), floor.get_height())
+            pygame.draw.rect(self.screen, floor.color, rect)
 
 
 if __name__ == "__main__":
